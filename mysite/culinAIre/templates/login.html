@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login and Register</title>
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+    <style>
+        body {
+            background-color: #ded3c8;
+            font-family: 'Montserrat', sans-serif;
+            color: #1f222e;
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            overflow-x: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;   
+            justify-content: center;   
+            align-items: center;  
+            padding-top: 60px;    
+        }
+        .loginContainer {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            background-color: #8c7851;
+            border: 4px solid #716040;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            width: 400px;
+            height: auto;  /* Change to auto to accommodate content */
+            max-height: 1000px; /* Optional: set a max height */
+            overflow-y: auto; 
+            margin: auto;
+        }
+        button {
+            background-color: #5E5B52; 
+            color: #f9f4ef; 
+            border: none;
+            border-radius: 5px; 
+            font-size: 15px; 
+            padding: 10px 20px;
+            margin-left: 35px;
+            cursor: pointer; 
+            transition: background-color 0.2s; 
+        }
+
+        button:hover {
+            background-color: #423f36; 
+        }
+
+        button:active {
+            background-color: #59574f; 
+        }
+        h2 {
+            font-size: 25px;
+            margin-top: 10px;
+        }
+        label {
+            font-size: 20px;
+            margin-top: -20px;
+        }
+        .message {
+            background-color: rgb(220, 148, 148);
+            padding: 8px 10px;
+            border-radius: 10px;
+            color: #b04644; 
+            margin-top: 5px; 
+            margin-left: -40px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CulinAIre</h1>
+    </div>
+    <div class="loginContainer">
+        <h2>Login</h2>
+        <form method="POST" action="{% url 'userAuth' %}">
+            {% csrf_token %}
+            <input type="hidden" name="login" value="login">
+            <div style="text-align: center; font-size: 15px; margin-top: 5px; color: #403728;">
+                <label for="username">Username<br></label>
+            </div>
+            <input type="text" name="username" required><br><br>
+            
+            <div style="text-align: center; font-size: 15px; margin-top: 5px; color: #403728;">
+                <label for="password">Password<br></label>
+            </div>
+            <input type="password" name="password" required><br><br>
+            <button type="submit">Login</button>
+        </form>
+
+        {% if messages %}
+            <div class="message-container">
+                <ul>
+                    {% for message in messages %}
+                        {% if message.tags == 'error' %}
+                        <div class="message">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <h2>Register</h2>
+        <form method="POST" action="{% url 'userAuth' %}">
+            {% csrf_token %}
+            <input type="hidden" name="register" value="register">
+            <div style="font-size: 15px; margin-top: 5px; color: #403728; justify-content: center;">
+                {{ register_form.as_p }}
+            </div>
+            <div style="margin-left: 120px">
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+
+        {% if messages %}
+            <div class="message-container">
+                <ul>
+                    {% for message in messages %}
+                        {% if message.tags == 'warning' %}
+                            <div class="message">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

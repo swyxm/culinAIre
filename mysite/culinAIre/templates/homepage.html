@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Meal Reflections</title>
+        <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+        <style>
+            body {
+                background-color: #ded3c8;
+                font-family: 'Montserrat', sans-serif;
+                color: #1f222e;
+                width: 100%;
+                height: 100%;
+                margin: 0px;
+                padding: 0px;
+                overflow-x: hidden;
+            }
+            .taskbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #8c7851;
+                border: 2px solid #716040;
+                padding-bottom: 15px;
+                padding-right: 0px;
+                padding-left: 0px;
+                padding-top: 15px;
+                position: fixed;
+                width: 100%;
+                height: 20px;
+                margin-bottom: 20px;
+            }
+            .container {
+                display: flex;
+                flex-direction: column;   
+                justify-content: center;   
+                align-items: center;  
+                padding-top: 60px;    
+            }
+            .dashboard {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background-color: #8c7851;
+                border: 4px solid #716040;
+                border-radius: 15px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+                padding: 20px;
+                width: 800px;
+                height: 600px;
+                overflow-y: auto; 
+                margin: auto;
+            }
+            .reflection {
+                background-color: #eaddcf;
+                border: 4px solid #716040;
+                border-radius: 10px;
+                padding: 10px;
+                margin: 10px;
+                min-width: 600px; 
+                width: 90%;
+            }
+            form {
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-width: 600px; 
+                width: 90%;
+            }
+            input, textarea {
+                margin: 5px;
+                padding: 10px;
+                font-family: 'Montserrat', sans-serif;
+                background-color: #f9f4ef;
+                border: 2px solid #716040;
+                border-radius: 5px;
+                min-height: 20px;
+                min-width: 600px; 
+                max-width: 100%; 
+            }
+            button {
+                background-color: #5E5B52; 
+                color: #f9f4ef; 
+                border: none;
+                border-radius: 5px; 
+                font-size: 15px; 
+                padding: 10px 20px;
+                margin: 20px;
+                cursor: pointer; 
+                transition: background-color 0.2s; 
+            }
+
+            button:hover {
+                background-color: #423f36; 
+            }
+
+            button:active {
+                background-color: #59574f; 
+            }
+
+            .delete-button {
+                background-color: #5E5B52; 
+                color: #f9f4ef; 
+                border: none; 
+                border-radius: 5px; 
+                padding: 5px 15px; 
+                font-size: 12px; 
+                cursor: pointer; 
+                margin-top: 20px; 
+                margin-bottom: 0px; 
+                transition: background-color 0.2s;
+            }
+
+            .delete-button:hover {
+                background-color: #c0392b; 
+            }
+
+            .delete-button:active {
+                background-color: #e74c3c; 
+            }
+
+            .username-container {
+                display: flex;
+                flex: 1;
+                justify-content: center;
+                left: 50%;
+                transform: translateX(68.37px); /* adjusts for sign out button set width */
+                font-size: 20px;
+                color: #f9f4ef;
+            }
+            h1 {
+                font-size: 60px;
+                margin-top: 20px;
+            }
+            h2 {
+                font-size: 20px;
+                margin-top: -30px;
+            }
+            .dashboard h2 {
+                font-size: 30px;
+                margin-top: 0;
+                color: #423f36
+            }
+        </style>
+    </head>
+    <body>
+        <div class="taskbar">
+            <div class="username-container">
+                <strong>{{ username }}'s Dashboard</strong>
+            </div>
+            <button onclick="signOut()">Sign Out</button>
+
+        </div>
+        <div class="container">
+            <h1>CulinAIre</h1>
+            <h2>Let me cook! &#128293&#127859&#128293</h2>
+        </div>
+        <div class="dashboard">
+            <h2>Meal Reflections</h2>
+            <form id="mealForm" method="POST" action="{% url 'analyze_flavor_view' %}">
+                {% csrf_token %}
+                <input type="date" id="date" required>
+                <input type="text" id="mealName" placeholder="What did you eat?" required>
+                <textarea id="review" placeholder="Write down your thoughts. The more comprehensive the better!" rows="3" required></textarea>
+                <input type="number" id="rating" placeholder="Rating out of 10; 0.5s if you really cant pick" min="0" max="10" step="0.5" required>
+                <button type="submit">Add Reflection</button>
+            </form>
+            <div id="reflectionsContainer"></div>
+        </div>
+
+    <script>
+        document.getElementById('date').max = new Date().toISOString().split("T")[0]; //caps max date to today
+
+
+        async function signOut() { //async to use await
+            try {
+                const response = await fetch('/accounts/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie(csrf_token), // Fetch the CSRF token
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.href = '/culinAIre/login';  // Redirect to login page
+                } else {
+                    alert('Sign out failed.');
+                }
+            } catch (error) {
+                console.error('Error during sign out:', error);
+            }
+        }
+
+
+    
+        const reflectionsContainer = document.getElementById('reflectionsContainer');
+        let reflections = JSON.parse(localStorage.getItem('reflections')) || [];
+        
+        displayReflections();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('date').max = new Date().toISOString().split("T")[0]; // caps max date to today
+
+            const reflectionsContainer = document.getElementById('reflectionsContainer');
+            let reflections = JSON.parse(localStorage.getItem('reflections')) || [];
+            displayReflections();
+
+            document.getElementById('mealForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                const date = document.getElementById('date').value;
+                const mealName = document.getElementById('mealName').value;
+                const review = document.getElementById('review').value;
+                const rating = parseFloat(document.getElementById('rating').value);
+
+                const reflection = {
+                    date,
+                    mealName,
+                    review,
+                    rating
+                };
+
+                console.log({ date, mealName, review, rating });
+
+                // Sending data to the backend at your defined endpoint
+                fetch('http://localhost:8000/culinAIre/analyze_flavor_view/', { // This is your actual endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ date, mealName, review, rating }),
+                })
+                .then(response => {
+                    displayReflections();
+                    console.log({ date, mealName, review, rating }); // test response
+                    console.log('Response Status:', response.status);
+                    return response.text();
+                })
+                .then(text => {
+                    console.log('Response Text:', text); // Log the raw response text
+                    try {
+                        const data = JSON.parse(text); // Try parsing it as JSON
+                        console.log('Success:', data);
+                    } catch (error) {
+                        console.error('JSON Parsing Error:', error);
+                    }
+                })
+                .then(data => {
+                    console.log('Response Data:', data); // Handle the response data here
+                    // Update local storage and display reflections
+                    reflections.push(reflection); // Add the new reflection to the array
+                    localStorage.setItem('reflections', JSON.stringify(reflections)); // Save to local storage
+                    displayReflections(); // Refresh displayed reflections
+                    document.getElementById('mealForm').reset(); // Reset the form
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+                //reflections.push(reflection);
+                //localStorage.setItem('reflections', JSON.stringify(reflections));
+                //mealForm.reset();
+                displayReflections();
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function displayReflections() {
+            reflections.sort((a, b) => new Date(b.date) - new Date(a.date));
+            reflectionsContainer.innerHTML = '';
+            reflections.forEach((reflection, index) => {
+                const reflectionDiv = document.createElement('div');
+                reflectionDiv.className = 'reflection';
+                reflectionDiv.innerHTML = `
+                    <div style="text-align: center; font-size: 20px; color: #242019;">
+                        <b>${reflection.mealName} - ${reflection.rating}/10</b><br> 
+                    </div>
+                    <div style="text-align: center; font-size: 15px; margin-top: 5px; color: #403728;">
+                        ${reflection.review}<br>
+                    </div>
+                    <div style="text-align: center; font-size: 12px; margin-top: 5px; color: #403728;">
+                        Reviewed on ${reflection.date}<br>
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                    <button class="delete-button" data-index="${index}">Delete</button>
+                    </div>
+                `;
+                reflectionsContainer.appendChild(reflectionDiv);
+            });
+
+            const deleteButtons = document.querySelectorAll('.delete-button');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', deleteReflection);
+            });
+        }
+
+        function deleteReflection(e) {
+            const index = e.target.getAttribute('data-index');
+            reflections.splice(index, 1); 
+            localStorage.setItem('reflections', JSON.stringify(reflections)); 
+            displayReflections(); 
+        }
+    </script>
+    </body>
+</html>
