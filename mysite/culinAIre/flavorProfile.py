@@ -84,7 +84,7 @@ def analyzeFlavor(mealName, review, rating):
     print(cumulativeMetrics.count)
     # Return response with the current weighted metrics and overall averages
     return JsonResponse({
-        'flavor_profile': weightedMetrics,
-        'response_string': responseString,
-        'average_flavor_profile': avgMetrics
+        'flavorProfile': weightedMetrics,
+        'responseString': responseString,
+        'avgMetrics': avgMetrics
     })

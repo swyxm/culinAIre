@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Meal Reflections</title>
+        <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+        <style>
+            body {
+                background-color: #ded3c8;
+                font-family: 'Montserrat', sans-serif;
+                color: #1f222e;
+                width: 100%;
+                height: 100%;
+                margin: 0px;
+                padding: 0px;
+                overflow-x: hidden;
+            }
+            .taskbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #8c7851;
+                border: 2px solid #716040;
+                padding-bottom: 15px;
+                padding-right: 0px;
+                padding-left: 0px;
+                padding-top: 15px;
+                position: fixed;
+                width: 100%;
+                height: 20px;
+                margin-bottom: 20px;
+            }
+            .container {
+                display: flex;
+                flex-direction: column;   
+                justify-content: center;   
+                align-items: center;  
+                padding-top: 60px;    
+            }
+            .dashboard {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background-color: #8c7851;
+                border: 4px solid #716040;
+                border-radius: 15px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+                padding: 20px;
+                width: 800px;
+                height: 600px;
+                overflow-y: auto; 
+                margin: auto;
+            }
+            .reflection {
+                background-color: #eaddcf;
+                border: 4px solid #716040;
+                border-radius: 10px;
+                padding: 10px;
+                margin: 10px;
+                min-width: 600px; 
+                width: 90%;
+            }
+            form {
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-width: 600px; 
+                width: 90%;
+            }
+            input, textarea {
+                margin: 5px;
+                padding: 10px;
+                font-family: 'Montserrat', sans-serif;
+                background-color: #f9f4ef;
+                border: 2px solid #716040;
+                border-radius: 5px;
+                min-height: 20px;
+                min-width: 600px; 
+                max-width: 100%; 
+            }
+            button {
+                background-color: #5E5B52; 
+                color: #f9f4ef; 
+                border: none;
+                border-radius: 5px; 
+                font-size: 15px; 
+                padding: 10px 20px;
+                margin: 20px;
+                cursor: pointer; 
+                transition: background-color 0.2s; 
+            }
+
+            button:hover {
+                background-color: #423f36; 
+            }
+
+            button:active {
+                background-color: #59574f; 
+            }
+
+            .delete-button {
+                background-color: #5E5B52; 
+                color: #f9f4ef; 
+                border: none; 
+                border-radius: 5px; 
+                padding: 5px 15px; 
+                font-size: 12px; 
+                cursor: pointer; 
+                margin-top: 20px; 
+                margin-bottom: 0px; 
+                transition: background-color 0.2s;
+            }
+
+            .delete-button:hover {
+                background-color: #c0392b; 
+            }
+
+            .delete-button:active {
+                background-color: #e74c3c; 
+            }
+
+            .username-container {
+                display: flex;
+                flex: 1;
+                justify-content: center;
+                left: 50%;
+                transform: translateX(68.37px); /* adjusts for sign out button set width */
+                font-size: 20px;
+                color: #f9f4ef;
+            }
+            h1 {
+                font-size: 60px;
+                margin-top: 20px;
+            }
+            h2 {
+                font-size: 20px;
+                margin-top: -30px;
+            }
+            .dashboard h2 {
+                font-size: 30px;
+                margin-top: 0;
+                color: #423f36
+            }
+            .resize {
+                max-width: 90%; /* Image will not exceed the container's width */
+                max-height: 500px; /* Image height will not exceed 400px */
+                width: auto;
+                height: auto;
+                border-radius: 5px; 
+}
+        </style>
+    </head>
+    <body>
+        <div class="taskbar">
+            <div class="username-container">
+                <strong>{{ username }}'s Dashboard</strong>
+            </div>
+            <button onclick="signOut()">Sign Out</button>
+
+        </div>
+        <div class="container">
+            <h1>CulinAIre</h1>
+            <h2>Let me cook! &#128293&#127859&#128293</h2>
+        </div>
+        <div class="dashboard">
+            <h2>Upload Menu:</h2>
+            <button onclick="upload()">Take a Picture of Your Menu</button>
+            <img src="/media/clipped.jpg" alt="Menu Upload" class="resize">
+            <div id="reflectionsContainer"></div>
+        </div>
+    {% csrf_token %}
+    <script>
+        const csrfToken = '{{ csrf_token }}';
+        function upload(){
+             // Sending data to the backend at your defined endpoint
+            fetch('http://localhost:8000/culinAIre/upload', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: "Hello, backend!" }) // Dummy data to test the POST request
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+    </body>
+</html>
